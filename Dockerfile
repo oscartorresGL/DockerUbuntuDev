@@ -49,16 +49,26 @@ WORKDIR /home/${usr}/vim
 RUN ./configure --enable-python3interp=yes && make && make install \
 	&& make VIMRUNTIMEDIR=/usr/local/share/vim/vim81 \
 	&& echo ${usrpass} | sudo -S checkinstall
-# RUN make VIMRUNTIMEDIR=/usr/local/share/vim/vim81
-# RUN echo ${pass} | sudo checkinstall
 WORKDIR /home/${usr}
 USER root
 RUN echo "LANG=en_US.UTF-8" >> /etc/environment
 RUN locale-gen en_US.UTF-8
 USER ${usr}
-WORKDIR /home/${usr}
-RUN echo ${pass} | sudo -S \ 
-	apt-get -y install tmux
+RUN echo ${pass} | sudo -S apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF \
+	&& sleep 2 \
+	&& sudo apt install apt-transport-https \
+	&& sleep 2 \
+	&& echo "deb https://download.mono-project.com/repo/ubuntu stable-xenial main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list \
+	&& sleep 2 \
+	&& sudo apt update \
+	&& sleep 5 \
+	&& sudo apt -y install mono-devel
+# RUN echo ${pass} | sudo -S apt-get update && \
+	# sleep 20 \
+	# && sudo apt-get -y install apt-transport-https 
+# RUN echo ${pass} | echo "deb https://download.mono-project.com/repo/ubuntu stable-trusty main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+RUN echo ${pass} && sudo -S sudo apt-get update \
+	&& sudo apt-get -y install tmux
 RUN git clone https://github.com/jimeh/tmux-themepack.git ~/.tmux-themepack
 RUN git clone https://github.com/tmux-plugins/tpm /home/${usr}/.tmux/plugins/tpm
 RUN echo 'set -g @plugin "tmux-plugins/tpm"' >> /home/${usr}/.tmux.conf
@@ -66,7 +76,7 @@ RUN echo 'set -g @plugin "tmux-plugins/tmux-sensible"' >> /home/${usr}/.tmux.con
 RUN echo 'set -g @plugin "jimeh/tmux-themepack"' >> /home/${usr}/.tmux.conf
 RUN echo 'set -g @plugin "tmux-plugins/tmux-sidebar"' >> /home/${usr}/.tmux.conf
 RUN echo 'run "/home/${usr}/.tmux/plugins/tpm/tpm"' >> /home/${usr}/.tmux.conf
-RUN wget -O ~/.vimrc https://github.com/helzgate/vimrc/blob/master/.vimrc?raw=true
+RUN wget -O /home/${usr}/.vimrc https://github.com/helzgate/vimrc/blob/master/.vimrc?raw=true
 RUN git clone https://github.com/VundleVim/Vundle.vim.git /home/${usr}/.vim/bundle/Vundle.vim
 USER root
 EXPOSE 22
