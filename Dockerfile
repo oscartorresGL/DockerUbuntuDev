@@ -43,28 +43,30 @@ RUN curl https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | 
 ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
 ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
-
 WORKDIR /home/${usr}
-RUN pwd
 RUN git clone https://github.com/vim/vim.git
 WORKDIR /home/${usr}/vim
-RUN pwd
-RUN ./configure --enable-python3interp=yes && make && make install 
-RUN make VIMRUNTIMEDIR=/usr/local/share/vim/vim81
-RUN checkinstall
+RUN ./configure --enable-python3interp=yes && make && make install \
+	&& make VIMRUNTIMEDIR=/usr/local/share/vim/vim81 \
+	&& echo ${usrpass} | sudo -S checkinstall
+# RUN make VIMRUNTIMEDIR=/usr/local/share/vim/vim81
+# RUN echo ${pass} | sudo checkinstall
 WORKDIR /home/${usr}
+USER root
 RUN echo "LANG=en_US.UTF-8" >> /etc/environment
-RUN echo ${pass} | sudo locale-gen en_US.UTF-8
-
-RUN echo ${pass} | sudo apt-get update && apt-get -y install tmux
+RUN locale-gen en_US.UTF-8
+USER ${usr}
+WORKDIR /home/${usr}
+RUN echo ${pass} | sudo -S \ 
+	apt-get -y install tmux
 RUN git clone https://github.com/jimeh/tmux-themepack.git ~/.tmux-themepack
-RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-RUN echo 'set -g @plugin "tmux-plugins/tpm"' >> ~/.tmux.conf
-RUN echo 'set -g @plugin "tmux-plugins/tmux-sensible"' >> ~/.tmux.conf
-RUN echo 'set -g @plugin "jimeh/tmux-themepack"' >> ~/.tmux.conf
-RUN echo 'set -g @plugin "tmux-plugins/tmux-sidebar"' >> ~/.tmux.conf
-RUN echo 'run "~/.tmux/plugins/tpm/tpm"' >> ~/.tmux.conf
+RUN git clone https://github.com/tmux-plugins/tpm /home/${usr}/.tmux/plugins/tpm
+RUN echo 'set -g @plugin "tmux-plugins/tpm"' >> /home/${usr}/.tmux.conf
+RUN echo 'set -g @plugin "tmux-plugins/tmux-sensible"' >> /home/${usr}/.tmux.conf
+RUN echo 'set -g @plugin "jimeh/tmux-themepack"' >> /home/${usr}/.tmux.conf
+RUN echo 'set -g @plugin "tmux-plugins/tmux-sidebar"' >> /home/${usr}/.tmux.conf
+RUN echo 'run "/home/${usr}/.tmux/plugins/tpm/tpm"' >> /home/${usr}/.tmux.conf
 RUN wget -O ~/.vimrc https://github.com/helzgate/vimrc/blob/master/.vimrc?raw=true
-RUN git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+RUN git clone https://github.com/VundleVim/Vundle.vim.git /home/${usr}/.vim/bundle/Vundle.vim
 USER root
 EXPOSE 22
